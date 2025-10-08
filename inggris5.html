@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Urutkan Kata Bahasa Inggris</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background-image: url('https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1400&q=80'); /* padang bunga */
+    background-size: cover;
+    background-position: center;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+  }
+  .container {
+    background-color: #93c5fd; /* biru muda */
+    padding: 24px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 700px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  }
+  h1 {
+    color: #1e3a8a;
+  }
+  .word-bank {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 10px;
+    justify-content: center;
+  }
+  .word {
+    background-color: white;
+    border: 2px solid #2563eb;
+    border-radius: 8px;
+    padding: 8px 12px;
+    cursor: grab;
+    user-select: none;
+    font-weight: 600;
+  }
+  textarea {
+    width: 100%;
+    min-height: 60px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    padding: 10px;
+    font-size: 16px;
+    background-color: white;
+    resize: none;
+    margin-bottom: 10px;
+  }
+  button {
+    background-color: #2563eb;
+    border: none;
+    color: white;
+    font-weight: bold;
+    border-radius: 8px;
+    padding: 8px 14px;
+    margin: 3px;
+    cursor: pointer;
+  }
+  button:hover {
+    background-color: #1d4ed8;
+  }
+  #feedback {
+    font-weight: bold;
+    min-height: 20px;
+    margin-top: 10px;
+  }
+  #score {
+    font-weight: bold;
+    margin-top: 15px;
+    color: darkblue;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1 id="judulSoal">Kalimat 1</h1>
+
+  <div class="word-bank" id="wordBank"></div>
+  <textarea id="dropArea" readonly></textarea>
+
+  <div>
+    <button id="prevBtn">Previous</button>
+    <button id="nextBtn" disabled>Next</button>
+    <button id="checkBtn">Hasil</button>
+    <button id="resetBtn">Reset</button>
+  </div>
+
+  <p id="feedback"></p>
+  <p id="score"></p>
+</div>
+
+<script>
+const kalimatData = [
+  {words:["I","am","going","to","the","market"], answer:"I am going to the market", done:false},
+  {words:["I","will","go","to","the","mountain"], answer:"I will go to the mountain", done:false},
+  {words:["I","will","play","football","tomorrow"], answer:"I will play football tomorrow", done:false},
+  {words:["I","am","speaking","English"], answer:"I am speaking English", done:false},
+  {words:["I","went","to","the","zoo","yesterday"], answer:"I went to the zoo yesterday", done:false}
+];
+
+let currentIndex = 0;
+let scoreTotal = 0;
+const pointPerQuestion = 20;
+
+const wordBank = document.getElementById("wordBank");
+const dropArea = document.getElementById("dropArea");
+const feedback = document.getElementById("feedback");
+const scoreEl = document.getElementById("score");
+const prevBtn = document.getElementById("prevBtn");
+const nextBtn = document.getElementById("nextBtn");
+const checkBtn = document.getElementById("checkBtn");
+const resetBtn = document.getElementById("resetBtn");
+const judulSoal = document.getElementById("judulSoal");
+
+function shuffle(array){
+  for(let i=array.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [array[i],array[j]]=[array[j],array[i]];
+  }
+  return array;
+}
+
+function loadSoal(index){
+  const soal = kalimatData[index];
+  judulSoal.textContent = `Kalimat ${index+1}`;
+  dropArea.value = "";
+  feedback.textContent = "";
+  wordBank.innerHTML = "";
+  nextBtn.disabled = true; // Next disable sampai jawaban benar
+
+  shuffle([...soal.words]).forEach(word=>{
+    const w = document.createElement("div");
+    w.className="word";
+    w.textContent=word;
+    w.draggable=true;
+    w.addEventListener("dragstart", e=>{
+      e.dataTransfer.setData("text", e.target.textContent);
+      e.target.style.opacity="0.5";
+    });
+    wordBank.appendChild(w);
+  });
+
+  prevBtn.disabled = index === 0;
+}
+
+// Drag & drop
+dropArea.addEventListener("dragover", e=>e.preventDefault());
+dropArea.addEventListener("drop", e=>{
+  e.preventDefault();
+  const word = e.dataTransfer.getData("text");
+  if(word){
+    dropArea.value += (dropArea.value ? " " : "") + word;
+    [...wordBank.children].forEach(el=>{
+      if(el.textContent===word) el.remove();
+    });
+  }
+});
+
+// Hasil
+checkBtn.addEventListener("click", ()=>{
+  const soal = kalimatData[currentIndex];
+  const userAnswer = dropArea.value.trim();
+  if(userAnswer === soal.answer){
+    feedback.textContent = "Hebat jawaban Anda benar 🎉";
+    feedback.style.color="green";
+    nextBtn.disabled = false;
+
+    if(!soal.done){
+      scoreTotal += pointPerQuestion;
+      soal.done = true;
+    }
+  } else {
+    feedback.textContent = "Maaf jawaban Anda salah, ulangi lagi 😅";
+    feedback.style.color="red";
+    if(soal.done){
+      scoreTotal -= pointPerQuestion;
+      soal.done = false;
+    }
+  }
+  updateScore();
+});
+
+// Reset
+resetBtn.addEventListener("click", ()=>{
+  loadSoal(currentIndex);
+  if(kalimatData[currentIndex].done){
+    scoreTotal -= pointPerQuestion;
+    kalimatData[currentIndex].done = false;
+  }
+  updateScore();
+});
+
+// Previous
+prevBtn.addEventListener("click", ()=>{
+  if(currentIndex>0){
+    currentIndex--;
+    loadSoal(currentIndex);
+  }
+});
+
+// Next
+nextBtn.addEventListener("click", ()=>{
+  if(currentIndex < kalimatData.length-1){
+    currentIndex++;
+    loadSoal(currentIndex);
+  } else {
+    feedback.textContent = `Selesai! Nilai akhir Anda: ${scoreTotal} / 100 🎉`;
+    feedback.style.color="blue";
+  }
+});
+
+function updateScore(){
+  scoreEl.textContent = `Nilai saat ini: ${scoreTotal} / 100`;
+}
+
+// Inisialisasi
+kalimatData.forEach(item=>item.done=false);
+loadSoal(currentIndex);
+updateScore();
+</script>
+
+</body>
+</html>
