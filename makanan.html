@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rantai Makanan</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background: #f0f8ff;
+    margin: 0;
+    padding: 20px;
+  }
+  h2 {
+    color: #2c3e50;
+  }
+  .circle-container {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin: 20px 0;
+  }
+  .circle {
+    width: 100px;
+    height: 100px;
+    border: 2px dashed #999;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    background: white;
+  }
+  .circle .watermark {
+    font-size: 40px;
+    color: rgba(0,0,0,0.1);
+    position: absolute;
+    pointer-events: none;
+  }
+  .circle img {
+    max-width: 90px;
+    max-height: 90px;
+    border-radius: 50%;
+  }
+  .images-container {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-top: 20px;
+  }
+  .images-container img {
+    width: 80px;
+    height: 80px;
+    cursor: grab;
+    border-radius: 50%;
+    border: 2px solid #ccc;
+    background: #fff;
+  }
+  button {
+    margin: 15px;
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+  }
+  #checkBtn { background: #27ae60; color: white; }
+  #resetBtn { background: #c0392b; color: white; }
+  #feedback {
+    font-size: 18px;
+    margin-top: 15px;
+    font-weight: bold;
+  }
+</style>
+</head>
+<body><!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-4KX380T5BD"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-4KX380T5BD');
+</script>
+
+
+  <h2>Urutkan Rantai Makanan</h2>
+  <p>Drag & drop gambar ke lingkaran sesuai urutan rantai makanan.</p>
+
+  <div class="circle-container">
+    <div class="circle" data-pos="1"><span class="watermark">1</span></div>
+    <div class="circle" data-pos="2"><span class="watermark">2</span></div>
+    <div class="circle" data-pos="3"><span class="watermark">3</span></div>
+    <div class="circle" data-pos="4"><span class="watermark">4</span></div>
+    <div class="circle" data-pos="5"><span class="watermark">5</span></div>
+  </div>
+
+  <div class="images-container" id="imagesContainer"></div>
+
+  <div>
+    <button id="checkBtn">Hasil</button>
+    <button id="resetBtn">Reset</button>
+  </div>
+
+  <div id="feedback"></div>
+
+<script>
+  const images = [
+    {src:"https://www.geocities.ws/koncomu/rantaimakanan/rumput.png", name:"rumput"},
+    {src:"https://www.geocities.ws/koncomu/rantaimakanan/belalang.png", name:"belalang"},
+    {src:"https://www.geocities.ws/koncomu/rantaimakanan/katak.png", name:"katak"},
+    {src:"https://www.geocities.ws/koncomu/rantaimakanan/ular.png", name:"ular"},
+    {src:"https://www.geocities.ws/koncomu/rantaimakanan/jamur.png", name:"jamur"}
+  ];
+
+  const correctOrder = ["rumput","belalang","katak","ular","jamur"];
+  const container = document.getElementById("imagesContainer");
+  const circles = document.querySelectorAll(".circle");
+  const feedback = document.getElementById("feedback");
+
+  function shuffle(arr) {
+    return arr.sort(()=> Math.random()-0.5);
+  }
+
+  function loadImages() {
+    container.innerHTML="";
+    let shuffled = shuffle([...images]);
+    shuffled.forEach(item=>{
+      let img = document.createElement("img");
+      img.src = item.src;
+      img.alt = item.name;
+      img.draggable = true;
+      img.dataset.name = item.name;
+      img.addEventListener("dragstart", dragStart);
+      container.appendChild(img);
+    });
+    circles.forEach(c=>{
+      c.innerHTML = `<span class="watermark">${c.dataset.pos}</span>`;
+    });
+    feedback.textContent="";
+  }
+
+  function dragStart(e){
+    e.dataTransfer.setData("name", e.target.dataset.name);
+    e.dataTransfer.setData("src", e.target.src);
+    e.dataTransfer.setData("origin", e.target.parentElement.id); // asal
+    setTimeout(()=>{ e.target.style.display="none"; }, 0);
+  }
+
+  circles.forEach(circle=>{
+    circle.addEventListener("dragover", e=> e.preventDefault());
+    circle.addEventListener("drop", function(e){
+      e.preventDefault();
+      const name = e.dataTransfer.getData("name");
+      const src = e.dataTransfer.getData("src");
+      const origin = e.dataTransfer.getData("origin");
+
+      // kembalikan isi lama ke asal jika ada
+      let existingImg = this.querySelector("img");
+      if(existingImg){
+        let oldName = existingImg.dataset.name;
+        let oldSrc = existingImg.src;
+        let imgBack = document.createElement("img");
+        imgBack.src = oldSrc;
+        imgBack.alt = oldName;
+        imgBack.draggable = true;
+        imgBack.dataset.name = oldName;
+        imgBack.addEventListener("dragstart", dragStart);
+        container.appendChild(imgBack);
+      }
+
+      this.innerHTML = `<img src="${src}" alt="${name}" data-name="${name}">`;
+    });
+  });
+
+  container.addEventListener("dragover", e=> e.preventDefault());
+  container.addEventListener("drop", function(e){
+    e.preventDefault();
+    const name = e.dataTransfer.getData("name");
+    const src = e.dataTransfer.getData("src");
+
+    let imgBack = document.createElement("img");
+    imgBack.src = src;
+    imgBack.alt = name;
+    imgBack.draggable = true;
+    imgBack.dataset.name = name;
+    imgBack.addEventListener("dragstart", dragStart);
+    container.appendChild(imgBack);
+
+    circles.forEach(c=>{
+      let img = c.querySelector("img");
+      if(img && img.dataset.name===name){
+        c.innerHTML = `<span class="watermark">${c.dataset.pos}</span>`;
+      }
+    });
+  });
+
+  document.getElementById("checkBtn").addEventListener("click", ()=>{
+    let answer = [];
+    circles.forEach(c=>{
+      let img = c.querySelector("img");
+      answer.push(img? img.dataset.name : null);
+    });
+    if(JSON.stringify(answer) === JSON.stringify(correctOrder)){
+      feedback.style.color="green";
+      feedback.textContent="Hebat, jawaban anda benar";
+    } else {
+      feedback.style.color="red";
+      feedback.textContent="Maaf, jawaban anda salah. Ulangi lagi";
+    }
+  });
+
+  document.getElementById("resetBtn").addEventListener("click", loadImages);
+
+  loadImages();
+</script>
+</body>
+<!-- Hosted by www.Geocities.ws -->
+</html>
