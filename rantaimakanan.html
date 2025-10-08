@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pengundian Dua Dadu</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #ffd6e7; /* pink muda */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 20px;
+    }
+
+    .dadu-container {
+      display: flex;
+      gap: 40px;
+      margin-bottom: 20px;
+    }
+
+    .dadu {
+      width: 100px;
+      height: 100px;
+      border-radius: 12px;
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(3, 1fr);
+      align-items: center;
+      justify-items: center;
+    }
+
+    .dadu-kuning {
+      background-color: #facc15; /* kuning */
+    }
+
+    .dadu-biru {
+      background-color: #93c5fd; /* biru muda */
+    }
+
+    .dot {
+      width: 16px;
+      height: 16px;
+      background-color: black;
+      border-radius: 50%;
+      visibility: hidden;
+    }
+
+    button {
+      padding: 10px 20px;
+      background-color: #10b981;
+      border: none;
+      color: white;
+      font-weight: bold;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    button:hover {
+      background-color: #059669;
+    }
+  </style>
+</head>
+<body>
+  <h1>Pengundian Dua Dadu</h1>
+
+  <div class="dadu-container">
+    <div class="dadu dadu-kuning" id="dadu1">
+      <!-- 9 kotak grid untuk menempatkan dot -->
+      <div class="dot" id="d1-0"></div>
+      <div class="dot" id="d1-1"></div>
+      <div class="dot" id="d1-2"></div>
+      <div class="dot" id="d1-3"></div>
+      <div class="dot" id="d1-4"></div>
+      <div class="dot" id="d1-5"></div>
+      <div class="dot" id="d1-6"></div>
+      <div class="dot" id="d1-7"></div>
+      <div class="dot" id="d1-8"></div>
+    </div>
+
+    <div class="dadu dadu-biru" id="dadu2">
+      <div class="dot" id="d2-0"></div>
+      <div class="dot" id="d2-1"></div>
+      <div class="dot" id="d2-2"></div>
+      <div class="dot" id="d2-3"></div>
+      <div class="dot" id="d2-4"></div>
+      <div class="dot" id="d2-5"></div>
+      <div class="dot" id="d2-6"></div>
+      <div class="dot" id="d2-7"></div>
+      <div class="dot" id="d2-8"></div>
+    </div>
+  </div>
+
+  <button onclick="undi()">Undi</button>
+
+  <script>
+    // Konfigurasi posisi titik untuk masing-masing sisi dadu
+    const daduMap = {
+      1: [4],
+      2: [0,8],
+      3: [0,4,8],
+      4: [0,2,6,8],
+      5: [0,2,4,6,8],
+      6: [0,2,3,5,6,8]
+    };
+
+    function tampilkanDadu(daduId, angka) {
+      // sembunyikan semua dot dulu
+      for(let i=0;i<9;i++){
+        document.getElementById(daduId+'-'+i).style.visibility = 'hidden';
+      }
+      // tampilkan titik sesuai angka
+      daduMap[angka].forEach(pos => {
+        document.getElementById(daduId+'-'+pos).style.visibility = 'visible';
+      });
+    }
+
+    function undi() {
+      const angka1 = Math.floor(Math.random() * 6) + 1;
+      const angka2 = Math.floor(Math.random() * 6) + 1;
+
+      tampilkanDadu('d1', angka1);
+      tampilkanDadu('d2', angka2);
+    }
+
+    // inisialisasi awal
+    undi();
+  </script>
+</body>
+</html>
