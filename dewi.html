@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TEKA-TEKI</title>
+  <style>
+    :root{font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;}
+    body{display:flex;align-items:center;justify-content:center;min-height:100vh;background:#ffd6e7;margin:0;padding:20px;color:#b91c1c;}
+    .card{background:white;padding:28px;border-radius:12px;box-shadow:0 6px 20px rgba(2,6,23,0.08);max-width:560px;width:100%;color:#b91c1c;}
+    h1{text-align:center;margin:0 0 12px;font-size:28px;letter-spacing:2px;color:#b91c1c;}
+    p{line-height:1.6;color:#b91c1c;}
+    .input-row{display:flex;gap:8px;margin-top:14px}
+    input[type="text"]{flex:1;padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:16px;color:#b91c1c;}
+    button{padding:10px 14px;border-radius:8px;border:0;background:#f87171;color:white;font-weight:600;cursor:pointer}
+    button:active{transform:translateY(1px)}
+    .feedback{margin-top:14px;font-weight:600}
+    .success{color:#065f46}
+    .error{color:#7f1d1d}
+    .small{font-size:13px;color:#b91c1c;margin-top:8px}
+    hr{border:none;border-top:1px solid #fde4ee;margin:18px 0}
+  </style>
+</head>
+<body>
+  <main class="card" role="main">
+    <h1>TEKA-TEKI</h1>
+
+    <section>
+      <p>
+        Aku adalah seekor hewan. Jumlah kakiku ada empat buah. Aku memiliki ekor. Aku juga memiliki belalai.<br>
+        Siapakah aku?
+      </p>
+
+      <div class="input-row">
+        <input id="answer" type="text" placeholder="Tulis jawaban di sini" aria-label="Jawaban teka-teki 1">
+        <button id="check">Jawab</button>
+      </div>
+
+      <div id="feedback" class="feedback" aria-live="polite"></div>
+    </section>
+
+    <hr>
+
+    <section>
+      <p>
+        Aku berkaki 2, mempunyai sayap, bertelur, dan berkokok tiap pagi. Siapakah aku?
+      </p>
+
+      <div class="input-row">
+        <input id="answer2" type="text" placeholder="Tulis jawaban di sini" aria-label="Jawaban teka-teki 2">
+        <button id="check2">Jawab</button>
+      </div>
+
+      <div id="feedback2" class="feedback" aria-live="polite"></div>
+    </section>
+
+    <div class="small">Catatan: Jawaban yang diterima untuk teka-teki pertama: <em>Gajah</em>. Untuk teka-teki kedua: <em>Ayam</em> (huruf besar/kecil diterima).</div>
+  </main>
+
+  <script>
+    (function(){
+      const accepted1 = ['gajah'];
+      const accepted2 = ['ayam'];
+
+      const input1 = document.getElementById('answer');
+      const btn1 = document.getElementById('check');
+      const feedback1 = document.getElementById('feedback');
+
+      const input2 = document.getElementById('answer2');
+      const btn2 = document.getElementById('check2');
+      const feedback2 = document.getElementById('feedback2');
+
+      function checkAnswer(input, accepted, feedback){
+        const raw = input.value || '';
+        const normalized = raw.trim().toLowerCase();
+        if(accepted.includes(normalized)){
+          feedback.textContent = 'Jawaban Anda benar, hebat';
+          feedback.classList.remove('error');
+          feedback.classList.add('success');
+        } else {
+          feedback.textContent = 'Jawaban Anda salah, silahkan coba lagi.';
+          feedback.classList.remove('success');
+          feedback.classList.add('error');
+        }
+      }
+
+      btn1.addEventListener('click', function(){ checkAnswer(input1, accepted1, feedback1); });
+      input1.addEventListener('keydown', function(e){ if(e.key === 'Enter') checkAnswer(input1, accepted1, feedback1); });
+
+      btn2.addEventListener('click', function(){ checkAnswer(input2, accepted2, feedback2); });
+      input2.addEventListener('keydown', function(e){ if(e.key === 'Enter') checkAnswer(input2, accepted2, feedback2); });
+    })();
+  </script>
+</body>
+</html>
