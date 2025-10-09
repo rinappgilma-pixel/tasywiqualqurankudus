@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pembelajaran TIK MTs</title>
+<style>
+  body {
+    margin: 0;
+    background: url('flowers.jpg') no-repeat center center fixed;
+    background-size: cover;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh; /* lebih stabil di semua perangkat */
+  }
+
+  .book {
+    width: 90%;
+    max-width: 550px;
+    position: relative;
+    perspective: 2000px;
+    margin: 1rem auto;
+  }
+
+  .page {
+    width: 100%;
+    height: auto;
+    position: absolute;
+    transform-origin: left center;
+    transition: transform 1s ease-in-out;
+    box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    background: #F5F5F5;
+    overflow: hidden;
+    border-radius: 8px;
+  }
+
+  .page-content {
+    width: 100%;
+    height: auto;
+  }
+
+  .page-content img {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 8px;
+  }
+
+  .cover img {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    display: block;
+    border-radius: 8px;
+  }
+
+  .back-cover {
+    background: lightblue;
+  }
+
+  /* 🔹 Mode mobile: hilangkan efek flip agar mudah dibaca */
+  @media (max-width: 600px) {
+    body {
+      display: block;
+      padding: 1rem;
+    }
+    .book {
+      perspective: none;
+    }
+    .page {
+      position: relative;
+      transform: none !important;
+      box-shadow: none;
+      margin-bottom: 1rem;
+    }
+  }
+</style>
+</head>
+<body>
+
+<!-- Musik latar -->
+<audio id="bgm" loop>
+  <source src="https://teddymutadi.github.io/diklat/pianokehidupan.mp3" type="audio/mpeg">
+  Browser Anda tidak mendukung audio.
+</audio>
+
+<div class="book" id="book">
+  <!-- Halaman 1 -->
+  <div class="page" data-page="1">
+    <div class="page-content">
+      <img src="https://nurulkhoiriyah087-gif.github.io/PelatihanOktober2025/2.png" alt="Halaman 1">
+    </div>
+  </div>
+
+  <!-- Halaman 2 -->
+  <div class="page" data-page="2">
+    <div class="page-content">
+      <img src="https://nurulkhoiriyah087-gif.github.io/PelatihanOktober2025/3.png" alt="Halaman 2">
+    </div>
+  </div>
+
+  <!-- Halaman 3 -->
+  <div class="page" data-page="3">
+    <div class="page-content">
+      <img src="https://nurulkhoiriyah087-gif.github.io/PelatihanOktober2025/4.png" alt="Halaman 3">
+    </div>
+  </div>
+
+  <!-- Back cover -->
+  <div class="page back-cover" data-page="10"></div>
+
+  <!-- Cover depan -->
+  <div class="page cover" data-page="0">
+    <img src="https://nurulkhoiriyah087-gif.github.io/PelatihanOktober2025/1.png" alt="Cover Buku">
+  </div>
+</div>
+
+<script>
+  const audio = document.getElementById("bgm");
+  const pages = document.querySelectorAll(".page");
+  let zIndexCounter = 1;
+
+  // Mulai musik setelah klik pertama
+  document.body.addEventListener("click", () => {
+    if (audio.paused) {
+      audio.play().catch(() => {});
+    }
+  }, { once: true });
+
+  // Efek flip hanya aktif di layar lebar
+  if (window.innerWidth > 600) {
+    pages.forEach((page, index) => {
+      if (page.classList.contains("cover")) {
+        page.style.zIndex = pages.length + 10;
+      } else {
+        page.style.zIndex = pages.length - index;
+      }
+
+      page.addEventListener("click", () => {
+        if (!page.classList.contains("flipped")) {
+          page.style.transform = "rotateY(-180deg)";
+          page.classList.add("flipped");
+          page.style.zIndex = ++zIndexCounter;
+
+          // Hentikan musik saat back cover dibuka
+          if (page.classList.contains("back-cover")) {
+            audio.pause();
+            audio.currentTime = 0;
+          }
+        } else {
+          page.style.transform = "rotateY(0deg)";
+          page.classList.remove("flipped");
+          page.style.zIndex = ++zIndexCounter;
+        }
+      });
+    });
+  }
+</script>
+
+</body>
+</html>
