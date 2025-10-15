@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Absen Digital - MA Mu'allimat NU Kudus</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+body {
+  margin: 0; font-family: 'Poppins', sans-serif;
+  background: #dff7df; color: #114311;
+}
+header {
+  background: linear-gradient(90deg, #3fa45b, #7de07d);
+  padding: 20px; color: white; text-align: center;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+}
+.container {
+  max-width: 1100px; margin: 20px auto; background: white;
+  border-radius: 10px; padding: 20px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+h2 { margin-top: 0; color: #2b742f; }
+label { font-weight: 600; }
+input, select, textarea {
+  padding: 6px 8px; border-radius: 6px;
+  border: 1px solid #ccc; width: 100%; font-family: inherit;
+}
+table {
+  width: 100%; border-collapse: collapse; margin-top: 15px;
+}
+th, td {
+  border: 1px solid #c0e6c2; padding: 8px; text-align: center;
+}
+th {
+  background: #bff0bf; color: #0d4a0d;
+}
+button {
+  padding: 8px 14px; border-radius: 6px; border: none;
+  cursor: pointer; font-weight: bold; transition: 0.3s;
+}
+button:hover { opacity: 0.85; }
+.btn-primary { background: #2f8f3f; color: white; }
+.btn-secondary { background: #5ac85a; color: white; }
+.btn-danger { background: #e74c3c; color: white; }
+.btn-disabled { background: gray; color: #fff; cursor: not-allowed; }
+.status { margin-top: 10px; font-weight: bold; }
+.tab-buttons { margin: 20px 0; }
+.hidden { display: none; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Absen Digital - MA Mu'allimat NU Kudus</h1>
+  <p>Pembimbing: Ilma Sururina, S.Pd., Gr. | Ekstrakurikuler: Olimpiade Matematika</p>
+</header>
+
+<div class="container" id="halaman1">
+  <h2>Form Absensi</h2>
+  <label>Tanggal</label>
+  <input type="date" id="tanggal" />
+
+  <div style="margin-top:10px;">
+    <button class="btn-primary" id="hadirSemua">Hadir Semua</button>
+    <button class="btn-secondary" id="tambahSiswa">Tambah Siswa</button>
+    <button class="btn-primary" id="simpan">Simpan</button>
+    <button class="btn-secondary" id="kirim">Kirim</button>
+    <button class="btn-secondary" id="ekspor">Ekspor Excel</button>
+    <button class="btn-disabled" disabled>Reset (Nonaktif)</button>
+    <button onclick="bukaRekapan()" class="btn-primary">Lihat Rekapan</button>
+  </div>
+
+  <table id="tabelSiswa">
+    <thead>
+      <tr>
+        <th>No</th><th>Nama</th><th>Kelas</th>
+        <th>Hadir</th><th>Izin</th><th>Sakit</th><th>Absen</th><th>Keterangan</th><th>Aksi</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <div class="status" id="status">Status: Belum Disimpan</div>
+</div>
+
+<div class="container hidden" id="halaman2">
+  <h2>Rekapan Kehadiran</h2>
+  <div class="tab-buttons">
+    <button class="btn-primary" onclick="rekapHarian()">Rekapan Harian</button>
+    <button class="btn-secondary" onclick="rekapBulanan()">Rekapan Bulanan</button>
+    <button onclick="kembali()" class="btn-danger">Kembali</button>
+  </div>
+  <div id="rekapContainer"></div>
+</div>
+
+<script>
+const siswaDefault = [
+  {nama:'Cintya Ramadhani Safitri', kelas:'XI IPA 1'},
+  {nama:'Ihda Queena Ikrima', kelas:'XI IPA 1'},
+  {nama:'Nabila Putri Zahara', kelas:'XI IPA 1'},
+  {nama:'Naila Mafaza', kelas:'XI IPA 1'},
+  {nama:'Rini Fitria Ningsih', kelas:'XI IPA 1'},
+  {nama:'Salma Hilya Fadhila', kelas:'XI IPA 1'},
+  {nama:'Izzatinnada', kelas:'XI IPA 2'},
+  {nama:'Salya Syarifa Salma', kelas:'XI IPA 2'},
+  {nama:'Yunita Desti', kelas:'XI IPA 2'},
+  {nama:'Shofwatul Mala', kelas:'XI IPA 3'},
+  {nama:'Jasmine Andrea Aulia Kanza', kelas:'XI IPA 3'},
+  {nama:'Aufa pratiwi', kelas:'XI IPA 3'},
+  {nama:'Rahma Nazila Qothrun Nada', kelas:'XI IPS 1'},
+  {nama:'Nor Shofiyani', kelas:'XI IPS 2'},
+  {nama:'Nurul Maghfiroh Ramdhani', kelas:'XI IPS 2'}
+];
+
+let siswa = JSON.parse(localStorage.getItem('daftarSiswa')) || siswaDefault;
+let absen = JSON.parse(localStorage.getItem('dataAbsen')) || {};
+
+function renderTabel(){
+  const tbody = document.querySelector('#tabelSiswa tbody');
+  tbody.innerHTML = '';
+  siswa.forEach((s, i)=>{
+    tbody.innerHTML += `
+      <tr>
+        <td>${i+1}</td>
+        <td>${s.nama}</td>
+        <td>${s.kelas}</td>
+        <td><input type="radio" name="status${i}" value="hadir"></td>
+        <td><input type="radio" name="status${i}" value="izin"></td>
+        <td><input type="radio" name="status${i}" value="sakit"></td>
+        <td><input type="radio" name="status${i}" value="absen"></td>
+        <td><input type="text" id="ket${i}" placeholder="Keterangan..."></td>
+        <td><button class="btn-danger" onclick="hapusSiswa(${i})">Hapus</button></td>
+      </tr>`;
+  });
+}
+renderTabel();
+
+document.getElementById('hadirSemua').onclick = ()=>{
+  siswa.forEach((s,i)=>{
+    document.querySelector(`input[name="status${i}"][value="hadir"]`).checked = true;
+  });
+};
+
+document.getElementById('tambahSiswa').onclick = ()=>{
+  const nama = prompt('Nama siswa:');
+  const kelas = prompt('Kelas:');
+  if(nama && kelas){
+    siswa.push({nama,kelas});
+    localStorage.setItem('daftarSiswa', JSON.stringify(siswa));
+    renderTabel();
+  }
+};
+
+function hapusSiswa(i){
+  if(confirm('Hapus siswa ini secara permanen?')){
+    siswa.splice(i,1);
+    localStorage.setItem('daftarSiswa', JSON.stringify(siswa));
+    renderTabel();
+  }
+}
+
+document.getElementById('simpan').onclick = ()=>{
+  const tgl = document.getElementById('tanggal').value;
+  if(!tgl){ alert('Isi tanggal terlebih dahulu'); return; }
+  absen[tgl] = siswa.map((s,i)=>{
+    const val = document.querySelector(`input[name="status${i}"]:checked`);
+    const status = val ? val.value : '';
+    const ket = document.getElementById(`ket${i}`).value;
+    return {...s, status, ket};
+  });
+  localStorage.setItem('dataAbsen', JSON.stringify(absen));
+  document.getElementById('status').innerHTML = "✅ Disimpan pada "+new Date().toLocaleString();
+};
+
+document.getElementById('kirim').onclick = ()=>{
+  alert('Data absen terkirim (tersimpan lokal)!');
+  document.getElementById('status').innerHTML = "📤 Terkirim "+new Date().toLocaleString();
+};
+
+document.getElementById('ekspor').onclick = ()=>{
+  const tgl = document.getElementById('tanggal').value;
+  if(!tgl || !absen[tgl]){ alert('Belum ada data tersimpan.'); return; }
+  const ws_data = [['Nama','Kelas','Status','Keterangan']];
+  absen[tgl].forEach(a=>ws_data.push([a.nama,a.kelas,a.status,a.ket]));
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet(ws_data);
+  XLSX.utils.book_append_sheet(wb, ws, 'Absen_'+tgl);
+  XLSX.writeFile(wb, `Absen_${tgl}.xlsx`);
+};
+
+function bukaRekapan(){
+  document.getElementById('halaman1').classList.add('hidden');
+  document.getElementById('halaman2').classList.remove('hidden');
+}
+
+function kembali(){
+  document.getElementById('halaman2').classList.add('hidden');
+  document.getElementById('halaman1').classList.remove('hidden');
+}
+
+function rekapHarian(){
+  const div = document.getElementById('rekapContainer');
+  div.innerHTML = '<h3>Rekapan Harian</h3>';
+  Object.keys(absen).forEach(tgl=>{
+    let html = `<h4>${tgl}</h4><table><tr><th>Nama</th><th>Kelas</th><th>Status</th><th>Keterangan</th></tr>`;
+    absen[tgl].forEach(a=>{
+      html += `<tr><td>${a.nama}</td><td>${a.kelas}</td><td>${a.status}</td><td>${a.ket}</td></tr>`;
+    });
+    html += '</table>';
+    html += `<button onclick="cetakRekap('${tgl}')" class="btn-primary">Cetak ${tgl}</button>`;
+    div.innerHTML += html;
+  });
+}
+
+function rekapBulanan(){
+  const div = document.getElementById('rekapContainer');
+  div.innerHTML = '<h3>Rekapan Bulanan</h3>';
+  const data = {};
+  Object.keys(absen).forEach(tgl=>{
+    absen[tgl].forEach(a=>{
+      if(!data[a.nama]) data[a.nama]={hadir:0,izin:0,sakit:0,absen:0};
+      if(a.status) data[a.nama][a.status]++;
+    });
+  });
+  let html = '<table><tr><th>Nama</th><th>Hadir</th><th>Izin</th><th>Sakit</th><th>Absen</th></tr>';
+  Object.keys(data).forEach(n=>{
+    const d=data[n];
+    html+=`<tr><td>${n}</td><td>${d.hadir}</td><td>${d.izin}</td><td>${d.sakit}</td><td>${d.absen}</td></tr>`;
+  });
+  html+='</table><button onclick="window.print()" class="btn-primary">Cetak Bulanan</button>';
+  div.innerHTML=html;
+}
+
+function cetakRekap(tgl){
+  const printWindow = window.open('', '_blank');
+  printWindow.document.write('<h3>Rekapan '+tgl+'</h3>');
+  absen[tgl].forEach(a=>{
+    printWindow.document.write(`${a.nama} - ${a.kelas} - ${a.status} - ${a.ket}<br>`);
+  });
+  printWindow.print();
+}
+</script>
+</body>
+</html>
